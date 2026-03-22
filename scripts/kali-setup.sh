@@ -49,7 +49,7 @@ mod_base_1() {
   # Actualizar sistema
   info "Actualizando sistema..."
   sudo apt update && sudo apt upgrade -y
-  info "Reboot your machine now!!!"
+  sudo reboot now
 }
 
 mod_base_2() {
@@ -349,8 +349,8 @@ show_menu() {
   echo "========================================="
   echo "  Kali Linux Unified Setup"
   echo "========================================="
-  echo "  1) Base (sistema, dev tools, shell)"
-  echo "  2) Base 2 (Se deben ejecutar despues de reiniciar el sistema)"
+  echo "  1) Base (sistema, dev tools, shell) ESTA OPCION REINICIARA TU SISTEMA"
+  echo "  2) Base 2 (Se debe ejecutar despues de reiniciar el sistema)"
   echo "  3) Offensive (WiFi, BT, cracking)"
   echo "  4) NVIDIA RTX 3050"
   echo "  5) RTL8812AU (AWUS036ACH)"
