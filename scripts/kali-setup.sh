@@ -37,7 +37,7 @@ append_once() {
 # =============================================================================
 # Modulo: Base (sistema, herramientas dev, shell, SSH)
 # =============================================================================
-mod_base() {
+mod_base_1() {
   info "=== Modulo: Base ==="
 
   # Directorios y symlinks
@@ -49,9 +49,12 @@ mod_base() {
   # Actualizar sistema
   info "Actualizando sistema..."
   sudo apt update && sudo apt upgrade -y
+  info "Reboot your machine now!!!"
+}
 
+mod_base_2() {
   # Dependencias base
-  info "Instalando dependencias base...SE DEBE HACER UN REBOOT AQUI, PARA TOMAR LOS HEADERS NUEVOS"
+  info "Instalando dependencias base..."
   sudo apt install -y \
     build-essential \
     vim \
@@ -347,11 +350,11 @@ show_menu() {
   echo "  Kali Linux Unified Setup"
   echo "========================================="
   echo "  1) Base (sistema, dev tools, shell)"
-  echo "  2) Offensive (WiFi, BT, cracking)"
-  echo "  3) NVIDIA RTX 3050"
-  echo "  4) RTL8812AU (AWUS036ACH)"
-  echo "  5) Gemini CLI"
-  echo "  6) Todo"
+  echo "  2) Base 2 (Se deben ejecutar despues de reiniciar el sistema)"
+  echo "  3) Offensive (WiFi, BT, cracking)"
+  echo "  4) NVIDIA RTX 3050"
+  echo "  5) RTL8812AU (AWUS036ACH)"
+  echo "  6) Gemini CLI"
   echo "  0) Salir"
   echo "========================================="
   echo -n "Selecciona modulos (separados por espacio, ej: 1 2 5): "
@@ -359,12 +362,12 @@ show_menu() {
 
   for choice in $choices; do
     case $choice in
-      1) mod_base ;;
-      2) mod_offensive ;;
-      3) mod_nvidia ;;
-      4) mod_rtl8812au ;;
-      5) mod_gemini ;;
-      6) mod_base; mod_offensive; mod_nvidia; mod_rtl8812au; mod_gemini ;;
+      1) mod_base_1 ;;
+      2) mod_base_2 ;;
+      3) mod_offensive ;;
+      4) mod_nvidia ;;
+      5) mod_rtl8812au ;;
+      6) mod_gemini ;;
       0) exit 0 ;;
       *) error "Opcion invalida: $choice" ;;
     esac
@@ -381,12 +384,12 @@ if [[ $# -eq 0 ]]; then
 else
   for arg in "$@"; do
     case $arg in
-      --base)       mod_base ;;
+      --base1)       mod_base_1 ;;
+      --base2)       mod_base_2 ;;
       --offensive)  mod_offensive ;;
       --nvidia)     mod_nvidia ;;
       --rtl8812au)  mod_rtl8812au ;;
       --gemini)     mod_gemini ;;
-      --all)        mod_base; mod_offensive; mod_nvidia; mod_rtl8812au; mod_gemini ;;
       *)            error "Argumento desconocido: $arg"; exit 1 ;;
     esac
   done
