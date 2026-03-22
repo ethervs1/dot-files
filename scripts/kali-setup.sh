@@ -49,7 +49,7 @@ mod_base_1() {
   # Actualizar sistema
   info "Actualizando sistema..."
   sudo apt update && sudo apt upgrade -y
-  sudo reboot now
+  NEEDS_REBOOT=true
 }
 
 mod_base_2() {
