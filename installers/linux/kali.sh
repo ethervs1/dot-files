@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Enable SSH for login remotely
+# sudo systemctl enable ssh
+# sudo systemctl start ssh
+# sudo systemctl status ssh
+
 set -euo pipefail
 
 # =============================================================================
@@ -63,8 +69,7 @@ mod_base_2() {
     bc \
     gnupg \
     linux-headers-"$(uname -r)" \
-    software-properties-common \
-    wget
+    software-properties-common
 
   # Herramientas CLI
   info "Instalando herramientas CLI..."
@@ -86,7 +91,6 @@ mod_base_2() {
     tree \
     unar \
     usbutils \
-    vlc \
     wget \
     wimtools \
     yt-dlp
@@ -190,20 +194,6 @@ mod_base_2() {
   fi
   append_once 'source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh'
 
-  # Custom init
-  append_once 'source ~/machine_setup/init.zsh'
-
-  # SSH config para 1Password
-  info "Configurando SSH para 1Password agent..."
-  mkdir -p ~/.ssh
-  if [[ ! -f ~/.ssh/config ]] || ! grep -q '1password/agent.sock' ~/.ssh/config; then
-    cat > ~/.ssh/config << 'EOF'
-Host *
-    IdentityAgent "~/.1password/agent.sock"
-EOF
-    chmod 600 ~/.ssh/config
-  fi
-
   # Limpieza
   info "Limpiando paquetes innecesarios..."
   sudo apt autoremove -y && sudo apt autoclean -y
@@ -240,7 +230,8 @@ mod_offensive() {
     hashcat \
     hashcat-utils \
     john \
-    wordlists
+    wordlists \
+    sqlmap
 
   info "Descomprimiendo rockyou.txt..."
   if [[ -f /usr/share/wordlists/rockyou.txt.gz ]]; then
@@ -319,29 +310,6 @@ mod_rtl8812au() {
 }
 
 # =============================================================================
-# Modulo: Gemini CLI
-# =============================================================================
-mod_gemini() {
-  info "=== Modulo: Gemini CLI ==="
-
-  # Asegurar que Node.js esta instalado
-  if ! command -v node &>/dev/null; then
-    info "Node.js no encontrado, instalando..."
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    sudo apt install -y nodejs
-  fi
-
-  info "Instalando Gemini CLI..."
-  npm install -g @google/gemini-cli
-
-  info "Verificando version..."
-  gemini --version
-
-  warn "Ejecuta 'gemini auth login' manualmente para autenticarte."
-  info "=== Modulo Gemini completado ==="
-}
-
-# =============================================================================
 # Menu interactivo
 # =============================================================================
 show_menu() {
@@ -367,7 +335,6 @@ show_menu() {
       3) mod_offensive ;;
       4) mod_nvidia ;;
       5) mod_rtl8812au ;;
-      6) mod_gemini ;;
       0) exit 0 ;;
       *) error "Opcion invalida: $choice" ;;
     esac
@@ -389,7 +356,6 @@ else
       --offensive)  mod_offensive ;;
       --nvidia)     mod_nvidia ;;
       --rtl8812au)  mod_rtl8812au ;;
-      --gemini)     mod_gemini ;;
       *)            error "Argumento desconocido: $arg"; exit 1 ;;
     esac
   done
