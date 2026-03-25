@@ -3,7 +3,7 @@ set -euo pipefail
 
 # =============================================================================
 # macOS Fresh Setup Script (Sonoma or later, Apple Silicon)
-# Usage: ./macos_v2.sh [--all | --dirs | --xcode | --brew | --shell | --ssh | --mas | --vscode | --cleanup]
+# Usage: ./macos_v2.sh [--1pass-key KEY] [--all | --dirs | --xcode | --brew | --shell | --ssh | --mas | --vscode | --cleanup]
 #        Sin argumentos muestra el menu interactivo.
 #
 # Cadena de dependencias (orden recomendado para fresh install):
@@ -18,6 +18,7 @@ set -euo pipefail
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname -- "$0")" && pwd)"
+ONEPASS_KEY=""
 
 # --- Colores ---
 RED='\033[0;31m'
@@ -45,6 +46,8 @@ mod_dirs() {
   mkdir -p ~/Documents/git ~/Documents/temp
   ln -sfn ~/Documents/git ~/git
   ln -sfn ~/Documents/temp ~/temp
+
+  cp -r ./dot-files ~/git
 
   info "=== Modulo Directorios completado ==="
 }
@@ -135,7 +138,6 @@ mod_brew() {
     wimlib
     yt-dlp
     oven-sh/bun/bun
-    supabase/tap/supabase
   )
 
   for pkg in "${formulae[@]}"; do
@@ -228,9 +230,15 @@ mod_shell() {
   brew install zsh-autosuggestions
   append_once 'source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh'
 
+  if [[ -n "$ONEPASS_KEY" ]]; then
+    append_once "alias 1pass=\"echo $ONEPASS_KEY | pbcopy\"" ~/git/dot-files/zsh/mine.zsh
+  else
+    warn "No se configuro alias 1pass: usa --1pass-key KEY para setearlo."
+  fi
+
   # Custom init
   info "Agregando custom init a .zshrc..."
-  append_once 'source ~/dot-files/init.zsh'
+  append_once 'source ~/git/dot-files/init.zsh'
 
   info "=== Modulo Shell completado ==="
 }
@@ -238,7 +246,7 @@ mod_shell() {
 # =============================================================================
 # Modulo: SSH (1Password agent)
 # =============================================================================
-mod_ssh() {
+mod_1password_ssh() {
   info "=== Modulo: SSH ==="
 
   info "Configurando SSH para 1Password agent..."
@@ -248,6 +256,14 @@ Host *
     IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 EOF
   chmod 600 ~/.ssh/config
+
+# Setear que vaults se pueden usar para leer las llaves SSH, si esto no esta seteado, se usaran todas los vaults para buscar las llaves privadas
+  mkdir -p ~/.config/1Password/ssh
+  cat > ~/.config/1Password/ssh/agent.toml << 'EOF'
+# Add my Git authentication key from my Work vault
+[[ssh-keys]]
+vault = "Development"
+EOF
 
   info "=== Modulo SSH completado ==="
 }
@@ -404,8 +420,14 @@ show_menu() {
       1) mod_dirs ;;
       2) mod_xcode ;;
       3) mod_brew ;;
-      4) mod_shell ;;
-      5) mod_ssh ;;
+      4)
+        if [[ -z "$ONEPASS_KEY" ]]; then
+          echo -n "Ingresa tu clave de 1Password para el alias 1pass: "
+          read -r ONEPASS_KEY
+        fi
+        mod_shell
+        ;;
+      5) mod_1password_ssh ;;
       6) mod_mas ;;
       7) mod_vscode ;;
       8) mod_cleanup ;;
@@ -421,14 +443,19 @@ show_menu() {
 if [[ $# -eq 0 ]]; then
   show_menu
 else
-  for arg in "$@"; do
+  while [[ $# -gt 0 ]]; do
+    arg="$1"
     case $arg in
+      --1pass-key)
+        ONEPASS_KEY="${2:?Error: --1pass-key requiere un valor}"
+        shift
+        ;;
       --all)
         mod_dirs
         mod_xcode
         mod_brew
         mod_shell
-        mod_ssh
+        mod_1password_ssh
         mod_mas
         mod_vscode
         mod_cleanup
@@ -437,12 +464,13 @@ else
       --xcode)    mod_xcode ;;
       --brew)     mod_brew ;;
       --shell)    mod_shell ;;
-      --ssh)      mod_ssh ;;
+      --ssh)      mod_1password_ssh ;;
       --mas)      mod_mas ;;
       --vscode)   mod_vscode ;;
       --cleanup)  mod_cleanup ;;
       *)          error "Argumento desconocido: $arg"; exit 1 ;;
     esac
+    shift
   done
 fi
 

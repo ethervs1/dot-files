@@ -1,6 +1,5 @@
 
 alias _g="git fetch; ggpull"
-alias 1pass="echo 4FtCUf6nzWNdGrfa | pbcopy"
 alias bm="mariadb"
 alias bp="/opt/homebrew/opt/libpq/bin/psql"
 alias c='clear'
