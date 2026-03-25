@@ -1,20 +1,4 @@
 
-alias _g="git fetch; ggpull"
-alias bm="mariadb"
-alias bp="/opt/homebrew/opt/libpq/bin/psql"
-alias c='clear'
-alias clean="brew update && brew upgrade && brew cleanup && brew autoremove && brew doctor"
-alias del="rm -rf"
-alias e='exit'
-alias get_hosts="cat ~/.ssh/config | grep Host"
-alias k="kubectl"
-alias l='eza -lah --group-directories-first --icons'
-alias list="l ~/git/bin; tree ~/git/bin"
-alias nb="gp; git checkout -b "
-alias o="void ~/.zshrc"
-alias s="source ~/.zshrc"
-alias vs="code ."
-
 mhelp() {
   cat << 'EOF'
 ====================================
@@ -41,3 +25,19 @@ mhelp() {
 ====================================
 EOF
 }
+
+alias _g="git fetch; ggpull"
+alias bm="mariadb"
+alias bp="/opt/homebrew/opt/libpq/bin/psql"
+alias c='clear'
+alias clean="brew update && brew upgrade && brew cleanup && brew autoremove && brew doctor"
+alias del="rm -rf"
+alias e='exit'
+alias get_hosts="cat ~/.ssh/config | grep Host"
+alias k="kubectl"
+alias l='eza -lah --group-directories-first --icons'
+alias list="l ~/git/bin; tree ~/git/bin"
+alias nb="gp; git checkout -b "
+alias o="void ~/.zshrc"
+alias s="source ~/.zshrc"
+alias vs="code ."
