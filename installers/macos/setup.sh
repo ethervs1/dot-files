@@ -143,6 +143,7 @@ mod_brew() {
   )
 
   for pkg in "${formulae[@]}"; do
+    echo "$pkg..."
     if ! output=$(brew install "$pkg" 2>&1); then
       failed_formulae+=("$pkg: $(echo "$output" | tail -1)")
     fi
@@ -182,6 +183,7 @@ mod_brew() {
   )
 
   for pkg in "${casks[@]}"; do
+    echo "cask $pkg..."
     if ! output=$(brew install --cask "$pkg" 2>&1); then
       failed_casks+=("$pkg: $(echo "$output" | tail -1)")
     fi
