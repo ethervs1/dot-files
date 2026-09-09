@@ -21,6 +21,7 @@ alias klogs="kubectl logs "
 alias kmariner="devx mariner kubeconfig"
 alias kns="kubectl config set-context --current --namespace"
 alias kpods="kubectl get pods -n "
+alias ksumm="kubectl config view --minify"
 
 # -------------------------
 # KUBERNETES PORT-FORWARD FUNCTION
@@ -60,6 +61,7 @@ BASICS / CONFIG
   kctxs    Get all contexts
   klist    Get clusters (sorted)
   kns      Set namespace (current context)
+  ksumm    Summary of current context and namespace
 
 GET RESOURCES
   kgp      Get pods
