@@ -1,0 +1,230 @@
+tap "databricks/tap", trusted: true
+tap "derailed/k9s", trusted: true
+tap "hashicorp/tap", trusted: true
+tap "nklmilojevic/sofka"
+tap "oven-sh/bun", trusted: true
+tap "productdevbook/tap", trusted: true
+tap "supabase/tap", trusted: true
+tap "tw93/tap", trusted: true
+# Run your GitHub Actions locally
+brew "act"
+# Generic-purpose lossless compression algorithm by Google
+brew "brotli"
+# Asynchronous DNS library
+brew "c-ares"
+# C/C++ and Java libraries for Unicode and globalization
+brew "icu4c@78"
+# HTTP/3 library written in C
+brew "libnghttp3"
+# IETF QUIC protocol implementation
+brew "libngtcp2"
+# Multi-platform support library with a focus on asynchronous I/O
+brew "libuv"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# AWS Cloud Development Kit - framework for defining AWS infra as code
+brew "aws-cdk"
+# Official Amazon AWS command-line interface
+brew "awscli"
+# Resource monitor. C++ version and continuation of bashtop and bpytop
+brew "btop"
+# Emacs dependency management
+brew "cask"
+# Powerful, clean, object-oriented scripting language
+brew "ruby", link: false
+# Dependency manager for Cocoa projects
+brew "cocoapods"
+# Modern, maintained replacement for ls
+brew "eza"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# GitHub command-line tool
+brew "gh"
+# Distributed revision control system
+brew "git"
+# Audit git repos for secrets
+brew "gitleaks"
+# Task is a task runner/build tool that aims to be simpler and easier to use
+brew "go-task"
+# World's fastest and most advanced password recovery utility
+brew "hashcat"
+# Client library for huggingface.co hub
+brew "hf"
+# Improved top (interactive process viewer)
+brew "htop"
+# User-friendly cURL replacement (command-line HTTP client)
+brew "httpie"
+# Library to communicate with iOS devices natively
+brew "libimobiledevice"
+# Tool for managing apps on iOS devices
+brew "ideviceinstaller"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# Kubernetes command-line interface
+brew "kubernetes-cli"
+# Postgres C API library
+brew "libpq"
+# Clone of ls with colorful output, file type icons, and more
+brew "lsd"
+# List USB devices, just like the Linux lsusb command
+brew "lsusb"
+# System information fetcher, with an emphasis on performance and minimalism
+brew "macchina"
+# Drop-in replacement for MySQL
+brew "mariadb"
+# Mac App Store command-line interface
+brew "mas"
+# Run a Kubernetes cluster locally
+brew "minikube"
+# Deep clean and optimize your Mac
+brew "mole"
+# MongoDB Shell to connect, configure, query, and work with your MongoDB database
+brew "mongosh"
+# Robust (fully ACID) transactional property graph database
+brew "neo4j"
+# Port scanning utility for large networks
+brew "nmap"
+# Modern shell for the GitHub era
+brew "nushell"
+# Create, run, and share large language models (LLMs)
+brew "ollama"
+# Drop-in replacement for Terraform. Infrastructure as Code Tool
+brew "opentofu"
+# Swiss-army knife of markup format conversion
+brew "pandoc"
+# PDF rendering library (based on the xpdf-3.0 code base)
+brew "poppler"
+# Search PDFs for strings matching a regular expression
+brew "pdfgrep"
+# Tool for managing OCI containers and pods
+brew "podman"
+# Protocol buffers (Google's data interchange format)
+brew "protobuf"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Extremely fast Python linter, written in Rust
+brew "ruff"
+# Easily detect and prevent bugs and anti-patterns in your codebase
+brew "semgrep"
+# Library to search and download subtitles
+brew "subliminal"
+# Generate scripting interfaces to C/C++ code
+brew "swig"
+# Very fast implementation of tldr in Rust
+brew "tealdeer"
+# User interface to the TELNET protocol
+brew "telnet"
+# Terraform version manager inspired by rbenv
+brew "tfenv"
+# Display directories as trees (with optional color/HTML output)
+brew "tree"
+# Find and verify credentials
+brew "trufflehog"
+# Command-line unarchiving tools supporting multiple formats
+brew "unar"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
+# Internet file retriever
+brew "wget"
+# Library to create, extract, and modify Windows Imaging files
+brew "wimlib"
+# Extensible command-line tool to format YAML files
+brew "yamlfmt"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Command-line interface for the Databricks platform
+brew "databricks/tap/databricks"
+# Kubernetes CLI To Manage Your Clusters In Style!
+brew "derailed/k9s/k9s"
+# Kubernetes TUI, reimagined in Rust
+brew "nklmilojevic/sofka/sofka", trusted: true
+# Incredibly fast JavaScript runtime, bundler, transpiler and package manager - all in one.
+brew "oven-sh/bun/bun"
+# Password manager that keeps all passwords secure behind one password
+cask "1password"
+# Command-line interface for 1Password
+cask "1password-cli"
+# Application launcher and productivity software
+cask "alfred"
+# Android SDK component
+cask "android-platform-tools"
+# Tools for building Android applications
+cask "android-studio"
+# Terminal-based AI coding assistant
+cask "claude-code"
+# App to build and share containerised applications and microservices
+cask "docker-desktop"
+# System-wide audio equaliser
+cask "eqmac"
+# Web browser
+cask "firefox"
+# UI toolkit for building applications for mobile, web and desktop
+cask "flutter"
+# Kubernetes IDE
+cask "freelens"
+# Client for the Google Drive storage service
+cask "google-drive"
+# Terminal emulator as alternative to Apple's Terminal app
+cask "iterm2"
+# Menu bar calendar
+cask "itsycal"
+# Full TeX Live distribution with GUI applications
+cask "mactex"
+# Htop on steroids
+cask "neohtop"
+# Knowledge base that works on top of a local folder of plain text Markdown files
+cask "obsidian"
+# Menu bar app to find and kill processes running on open ports
+cask "productdevbook/tap/portkiller"
+# Move and resize windows using keyboard shortcuts or snap areas
+cask "rectangle"
+# Music streaming service
+cask "spotify"
+# JDK from the Eclipse Foundation (Adoptium)
+cask "temurin@17"
+# Open-source code editor
+cask "visual-studio-code"
+# Multimedia player
+cask "vlc"
+# AI code editor
+cask "void"
+mas "Monosnap", id: 540348655
+mas "Perplexity", id: 6714467650
+mas "Xcode", id: 497799835
+vscode "adpyke.vscode-sql-formatter"
+vscode "akashrajkn.language-netlogo-code"
+vscode "amazonwebservices.aws-toolkit-vscode"
+vscode "arcticicestudio.nord-visual-studio-code"
+vscode "beardedbear.beardedicons"
+vscode "beardedbear.beardedtheme"
+vscode "bisnetoinc.theme-excel"
+vscode "blackblackcat.silver-gray"
+vscode "george-alisson.html-preview-vscode"
+vscode "github.vscode-github-actions"
+vscode "grapecity.gc-excelviewer"
+vscode "hashicorp.terraform"
+vscode "hellokittyvscodetheme.hello-kitty-theme"
+vscode "mechatroner.rainbow-csv"
+vscode "ms-azuretools.vscode-containers"
+vscode "ms-azuretools.vscode-docker"
+vscode "ms-python.debugpy"
+vscode "ms-python.python"
+vscode "ms-python.vscode-pylance"
+vscode "ms-python.vscode-python-envs"
+vscode "ms-toolsai.jupyter"
+vscode "ms-toolsai.jupyter-keymap"
+vscode "ms-toolsai.jupyter-renderers"
+vscode "ms-toolsai.vscode-jupyter-cell-tags"
+vscode "ms-toolsai.vscode-jupyter-slideshow"
+vscode "ms-vscode-remote.remote-containers"
+vscode "ms-vscode.live-server"
+vscode "shd101wyy.markdown-preview-enhanced"
+vscode "tomoki1207.pdf"
+vscode "vue.volar"
+vscode "yzane.markdown-pdf"
+uv "cloudinary-cli"
+uv "litellm"
+uv "mlx-lm"
+npm "@earendil-works/pi-coding-agent"
