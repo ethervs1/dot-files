@@ -3,22 +3,22 @@ set -euo pipefail
 
 # =============================================================================
 # macOS Fresh Setup Script (Sonoma or later, Apple Silicon)
-# Usage: ./macos_v2.sh [--1pass-key KEY] [--all | --dirs | --xcode | --brew | --shell | --ssh | --mas | --vscode | --cleanup]
+# Usage: ./setup.sh [--all | --dirs | --xcode | --brew | --shell | --ssh | --mas | --vscode | --cleanup]
 #        Sin argumentos muestra el menu interactivo.
 #
 # Cadena de dependencias (orden recomendado para fresh install):
 #   1. dirs    → sin dependencias
 #   2. xcode   → sin dependencias
-#   3. brew    → requiere xcode
+#   3. brew    → requiere xcode, instala todo del Brewfile (formulae, casks, mas apps*, vscode extensions*)
+#                *mas requiere login en App Store, *vscode requiere 'code' en PATH
 #   4. shell   → requiere brew (instala oh-my-zsh, luego agrega brew shellenv a .zshrc)
 #   5. ssh     → sin dependencias
-#   6. mas     → requiere brew (mas), requiere login en App Store
-#   7. vscode  → requiere brew (VS Code instalado), requiere 'code' en PATH
+#   6. mas     → DEPRECATED - ahora se instala via brew (Brewfile)
+#   7. vscode  → requiere brew (VS Code instalado), requiere 'code' en PATH, lee Brewfile
 #   8. cleanup → requiere brew, requiere mole instalado
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname -- "$0")" && pwd)"
-ONEPASS_KEY=""
 
 # --- Colores ---
 RED='\033[0;31m'
@@ -43,9 +43,15 @@ append_once() {
 mod_dirs() {
   info "=== Modulo: Directorios y Symlinks ==="
 
-  mkdir -p ~/Documents/git ~/Documents/temp
-  ln -sfn ~/Documents/git ~/git
-  ln -sfn ~/Documents/temp ~/temp
+  mkdir -p ~/vault/git ~/vault/temp ~/vault/desktop
+
+  ln -sfn ~/vault/git ~/git
+  ln -sfn ~/vault/temp ~/temp
+  ln -sfn ~/vault/desktop ~/Desktop/desktop
+
+  # mkdir -p ~/Documents/git ~/Documents/temp
+  # ln -sfn ~/Documents/git ~/git
+  # ln -sfn ~/Documents/temp ~/temp
 
   cp -r ./dot-files ~/git
   ls -la  ~/git
@@ -74,6 +80,7 @@ mod_xcode() {
 # =============================================================================
 # Modulo: Homebrew + Formulae + Casks
 # Dependencias: xcode
+# Nota: Usa Brewfile para instalar taps, formulae, casks, mas apps, vscode extensions, etc.
 # =============================================================================
 mod_brew() {
   info "=== Modulo: Homebrew + Apps ==="
@@ -86,114 +93,28 @@ mod_brew() {
     info "Homebrew ya instalado."
   fi
 
-  # Taps
-  info "Agregando taps..."
-  brew tap oven-sh/bun
-  brew tap productdevbook/tap
-  brew tap supabase/tap
+  local brewfile="$SCRIPT_DIR/Brewfile"
 
-  # Formulae
-  info "Instalando formulae..."
-  local failed_formulae=()
-  local formulae=(
-    btop
-    cask
-    eza
-    ffmpeg
-    node
-    gemini-cli
-    gh
-    git
-    go-task
-    hashcat
-    hf
-    htop
-    httpie
-    jq
-    libpq
-    lsd
-    lsusb
-    macchina
-    mariadb
-    mas
-    minikube
-    mole
-    mongosh
-    neo4j
-    nmap
-    nushell
-    ollama
-    opentofu
-    pandoc
-    podman
-    ruby
-    ruff
-    subliminal
-    swig
-    tealdeer
-    telnet
-    tree
-    trufflehog
-    unar
-    uv
-    wget
-    wimlib
-    yt-dlp
-    oven-sh/bun/bun
-  )
-
-  for pkg in "${formulae[@]}"; do
-    echo "$pkg..."
-    if ! output=$(brew install "$pkg" 2>&1); then
-      failed_formulae+=("$pkg: $(echo "$output" | tail -1)")
-    fi
-  done
-
-  if [[ ${#failed_formulae[@]} -gt 0 ]]; then
-    warn "Formulae que fallaron:"
-    for f in "${failed_formulae[@]}"; do
-      warn "  - $f"
-    done
+  if [[ ! -f "$brewfile" ]]; then
+    error "Brewfile no encontrado en: $brewfile"
+    return 1
   fi
 
-  # Casks
-  info "Instalando casks..."
-  local failed_casks=()
-  local casks=(
-    1password
-    1password-cli
-    alfred
-    android-platform-tools
-    claude-code
-    firefox
-    flutter
-    google-chrome
-    iterm2
-    itsycal
-    mactex
-    nordvpn
-    productdevbook/tap/portkiller
-    spotify
-    utm
-    visual-studio-code
-    vlc
-    void
-    webtorrent
-    zoom
-  )
+  info "Instalando paquetes desde Brewfile..."
+  info "Nota: brew bundle instala taps, formulae, casks, mas apps y vscode extensions"
 
-  for pkg in "${casks[@]}"; do
-    echo "cask $pkg..."
-    if ! output=$(brew install --cask "$pkg" 2>&1); then
-      failed_casks+=("$pkg: $(echo "$output" | tail -1)")
-    fi
-  done
-
-  if [[ ${#failed_casks[@]} -gt 0 ]]; then
-    warn "Casks que fallaron:"
-    for f in "${failed_casks[@]}"; do
-      warn "  - $f"
-    done
+  # brew bundle instala todo lo del Brewfile:
+  # - taps
+  # - formulae
+  # - casks
+  # - mas (App Store apps) - requiere login previo en App Store
+  # - vscode extensions - requiere 'code' en PATH
+  # - npm packages
+  # - uv packages
+  if ! brew bundle --file="$brewfile" --no-lock; then
+    warn "brew bundle reporto algunos errores. Revisa el output arriba."
+    warn "Nota: es normal que fallen algunas apps de mas si no estas logueado en App Store"
+    warn "Nota: es normal que fallen vscode extensions si 'code' no esta en PATH"
   fi
 
   info "=== Modulo Homebrew + Apps completado ==="
@@ -234,15 +155,9 @@ mod_shell() {
   brew install zsh-autosuggestions
   append_once 'source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh'
 
-  if [[ -n "$ONEPASS_KEY" ]]; then
-    append_once "alias 1pass=\"echo $ONEPASS_KEY | pbcopy\"" ~/git/dot-files/zsh/mine.zsh
-  else
-    warn "No se configuro alias 1pass: usa --1pass-key KEY para setearlo."
-  fi
-
   # Custom init
   info "Agregando custom init a .zshrc..."
-  append_once 'source ~/git/dot-files/init.zsh'
+  append_once 'source ~/vault/git/dot-files/init.zsh'
 
   info "=== Modulo Shell completado ==="
 }
@@ -264,7 +179,11 @@ EOF
 # Setear que vaults se pueden usar para leer las llaves SSH, si esto no esta seteado, se usaran todas los vaults para buscar las llaves privadas
   mkdir -p ~/.config/1Password/ssh
   cat > ~/.config/1Password/ssh/agent.toml << 'EOF'
-# Add my Git authentication key from my Work vault
+# Current client
+[[ssh-keys]]
+vault = "Disney"
+
+# Personal vault
 [[ssh-keys]]
 vault = "Development"
 EOF
@@ -275,6 +194,7 @@ EOF
 # =============================================================================
 # Modulo: Mac App Store
 # Dependencias: brew (mas), login en App Store
+# Nota: Extrae las apps de mas del Brewfile y las instala via 'mas install'
 # =============================================================================
 mod_mas() {
   info "=== Modulo: Mac App Store ==="
@@ -284,17 +204,41 @@ mod_mas() {
     return 1
   fi
 
-  local failed_mas=()
-  local apps=(
-    "425264550:Blackmagic Disk Speed Test"
-    "540348655:Monosnap"
-    "409201541:Pages"
-    "425424353:The Unarchiver"
-  )
+  local brewfile="$SCRIPT_DIR/Brewfile"
 
+  if [[ ! -f "$brewfile" ]]; then
+    error "Brewfile no encontrado en: $brewfile"
+    return 1
+  fi
+
+  info "Extrayendo apps de Mac App Store desde Brewfile..."
+
+  # Extrae todas las lineas que empiezan con 'mas "' del Brewfile
+  # Formato: mas "App Name", id: 123456
+  local apps=()
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^mas[[:space:]]+\"([^\"]+)\",[[:space:]]*id:[[:space:]]*([0-9]+) ]]; then
+      local name="${BASH_REMATCH[1]}"
+      local id="${BASH_REMATCH[2]}"
+      apps+=("$id:$name")
+    fi
+  done < "$brewfile"
+
+  if [[ ${#apps[@]} -eq 0 ]]; then
+    warn "No se encontraron apps de Mac App Store en el Brewfile"
+    return 0
+  fi
+
+  info "Instalando ${#apps[@]} apps de Mac App Store..."
+  warn "Asegurate de estar logueado en la App Store antes de continuar."
+  echo -n "Presiona Enter para continuar..."
+  read -r
+
+  local failed_mas=()
   for entry in "${apps[@]}"; do
     local id="${entry%%:*}"
     local name="${entry#*:}"
+    echo "  $name (id: $id)..."
     if ! output=$(mas install "$id" 2>&1); then
       failed_mas+=("$name ($id): $(echo "$output" | tail -1)")
     fi
@@ -313,6 +257,7 @@ mod_mas() {
 # =============================================================================
 # Modulo: VS Code Extensions
 # Dependencias: brew (VS Code), 'code' en PATH
+# Nota: Extrae las extensiones del Brewfile y las instala via 'code --install-extension'
 # =============================================================================
 mod_vscode() {
   info "=== Modulo: VS Code Extensions ==="
@@ -323,43 +268,34 @@ mod_vscode() {
     return 1
   fi
 
-  local failed_ext=()
-  local extensions=(
-    adpyke.vscode-sql-formatter
-    akashrajkn.language-netlogo-code
-    anthropic.claude-code
-    beardedbear.beardedicons
-    beardedbear.beardedtheme
-    bisnetoinc.theme-excel
-    blackblackcat.silver-gray
-    breberaf.snowflake
-    docker.docker
-    dreamcatcher45.podmanager
-    george-alisson.html-preview-vscode
-    google.geminicodeassist
-    grapecity.gc-excelviewer
-    hashicorp.terraform
-    huacat.pink-theme
-    mechatroner.rainbow-csv
-    ms-azuretools.vscode-containers
-    ms-azuretools.vscode-docker
-    ms-python.debugpy
-    ms-python.python
-    ms-python.vscode-pylance
-    ms-python.vscode-python-envs
-    ms-toolsai.jupyter
-    ms-toolsai.jupyter-hub
-    ms-toolsai.jupyter-keymap
-    ms-toolsai.jupyter-renderers
-    ms-toolsai.vscode-jupyter-cell-tags
-    ms-toolsai.vscode-jupyter-slideshow
-    ms-vscode-remote.remote-containers
-    shd101wyy.markdown-preview-enhanced
-    tomoki1207.pdf
-    vue.volar
-  )
+  local brewfile="$SCRIPT_DIR/Brewfile"
 
+  if [[ ! -f "$brewfile" ]]; then
+    error "Brewfile no encontrado en: $brewfile"
+    return 1
+  fi
+
+  info "Extrayendo extensiones de VS Code desde Brewfile..."
+
+  # Extrae todas las lineas que empiezan con 'vscode "' del Brewfile
+  local extensions=()
+  while IFS= read -r line; do
+    # Extrae el nombre de la extension entre comillas
+    if [[ "$line" =~ ^vscode[[:space:]]+\"([^\"]+)\" ]]; then
+      extensions+=("${BASH_REMATCH[1]}")
+    fi
+  done < "$brewfile"
+
+  if [[ ${#extensions[@]} -eq 0 ]]; then
+    warn "No se encontraron extensiones de VS Code en el Brewfile"
+    return 0
+  fi
+
+  info "Instalando ${#extensions[@]} extensiones de VS Code..."
+
+  local failed_ext=()
   for ext in "${extensions[@]}"; do
+    echo "  $ext..."
     if ! output=$(code --install-extension "$ext" 2>&1); then
       failed_ext+=("$ext: $(echo "$output" | tail -1)")
     fi
@@ -407,15 +343,16 @@ show_menu() {
   echo "========================================="
   echo "  1) Directorios y Symlinks"
   echo "  2) Xcode Command Line Tools"
-  echo "  3) Homebrew + Apps          (requiere: 2)"
+  echo "  3) Homebrew + Apps          (requiere: 2, lee Brewfile)"
   echo "  4) Shell (Oh My Zsh, P10k)  (requiere: 3)"
   echo "  5) SSH (1Password agent)"
-  echo "  6) Mac App Store            (requiere: 3, login en App Store)"
-  echo "  7) VS Code Extensions       (requiere: 3, 'code' en PATH { Abre VS Code > Cmd+Shift+P > 'Shell Command: Install code command in PATH' })"
+  echo "  6) Mac App Store            (requiere: 3, login en App Store, lee Brewfile)"
+  echo "  7) VS Code Extensions       (requiere: 3, 'code' en PATH, lee Brewfile)"
   echo "  8) Cleanup                  (requiere: 3)"
   echo "  0) Salir"
   echo "========================================="
-  echo -e "${YELLOW}Orden recomendado fresh install: 1 2 3 4 5 6 7 8${NC}"
+  echo -e "${YELLOW}Orden recomendado fresh install: 1 2 3 4 5 (6 y 7 opcionales)${NC}"
+  echo -e "${YELLOW}Nota: mod_brew (3) instala casi todo via Brewfile, incluyendo mas/vscode${NC}"
   echo -n "Selecciona modulos (separados por espacio): "
   read -r choices
 
@@ -424,13 +361,7 @@ show_menu() {
       1) mod_dirs ;;
       2) mod_xcode ;;
       3) mod_brew ;;
-      4)
-        if [[ -z "$ONEPASS_KEY" ]]; then
-          echo -n "Ingresa tu clave de 1Password para el alias 1pass: "
-          read -r ONEPASS_KEY
-        fi
-        mod_shell
-        ;;
+      4) mod_shell ;;
       5) mod_1password_ssh ;;
       6) mod_mas ;;
       7) mod_vscode ;;
@@ -450,10 +381,6 @@ else
   while [[ $# -gt 0 ]]; do
     arg="$1"
     case $arg in
-      --1pass-key)
-        ONEPASS_KEY="${2:?Error: --1pass-key requiere un valor}"
-        shift
-        ;;
       --all)
         mod_dirs
         mod_xcode
