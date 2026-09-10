@@ -117,6 +117,11 @@ mod_brew() {
     warn "Nota: es normal que fallen vscode extensions si 'code' no esta en PATH"
   fi
 
+  # Estos paquetes no fueron instalados por homebrew, pero ahora si
+  brew install --cask microsoft-teams
+  brew install --cask slack
+  brew install --cask slack-cli
+
   info "=== Modulo Homebrew + Apps completado ==="
 }
 
@@ -341,6 +346,7 @@ show_menu() {
   echo "========================================="
   echo "  macOS Fresh Setup"
   echo "========================================="
+  echo " Si es el laptop de trabajo, logueate en globant self service primero que todo y en App Store"
   echo "  1) Directorios y Symlinks"
   echo "  2) Xcode Command Line Tools"
   echo "  3) Homebrew + Apps          (requiere: 2, lee Brewfile)"
