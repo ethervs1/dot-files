@@ -2,10 +2,16 @@
 # This one needs to go in the ~/.zshrc
 # source ~/vault/git/dot-files/init.zsh
 
-user=$(whoami)
-
 # Dot files zsh
 for file in ~/vault/git/dot-files/dot-files/zsh/common/*.zsh; do
+  source "$file"
+done
+
+for file in ~/vault/git/dot-files/dot-files/zsh/work/*.zsh; do
+  source "$file"
+done
+
+for file in ~/vault/git/dot-files/dot-files/zsh/personal/*.zsh; do
   source "$file"
 done
 
@@ -14,22 +20,6 @@ for file in ~/vault/git/dot-files/dot-files/scripts/common/*.sh; do
   source "$file"
 done
 
-
-if [[ "$user" == "raul.munoz" ]]; then
-  for file in ~/vault/git/dot-files/dot-files/scripts/work/*.sh; do
-    source "$file"
-  done
-
-  # Dot files zsh
-  for file in ~/vault/git/dot-files/dot-files/zsh/work/*.zsh; do
-    source "$file"
-  done
-
-else
-
-  # Dot files zsh
-  for file in ~/vault/git/dot-files/dot-files/zsh/personal/*.zsh; do
-    source "$file"
-  done
-
-fi
+for file in ~/vault/git/dot-files/dot-files/scripts/work/*.sh; do
+  source "$file"
+done
