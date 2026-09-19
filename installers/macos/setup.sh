@@ -43,15 +43,13 @@ append_once() {
 mod_dirs() {
   info "=== Modulo: Directorios y Symlinks ==="
 
-  mkdir -p ~/vault/git ~/vault/temp ~/vault/desktop
+  mkdir -p ~/vault/v_git ~/vault/v_temp ~/vault/v_desktop ~/vault/v_documents ~/vault/v_download
 
-  ln -sfn ~/vault/git ~/git
-  ln -sfn ~/vault/temp ~/temp
-  ln -sfn ~/vault/desktop ~/Desktop/desktop
-
-  # mkdir -p ~/Documents/git ~/Documents/temp
-  # ln -sfn ~/Documents/git ~/git
-  # ln -sfn ~/Documents/temp ~/temp
+  ln -sfn ~/vault/desktop ~/Desktop/v_desktop
+  ln -sfn ~/vault/git ~/v_documents
+  ln -sfn ~/vault/git ~/v_git
+  ln -sfn ~/vault/temp ~/v_download
+  ln -sfn ~/vault/temp ~/v_temp
 
   cp -r ./dot-files ~/git
   ls -la  ~/git
@@ -119,8 +117,6 @@ mod_brew() {
 
   # Estos paquetes no fueron instalados por homebrew, pero ahora si
   brew install --cask microsoft-teams
-  brew install --cask slack
-  brew install --cask slack-cli
 
   info "=== Modulo Homebrew + Apps completado ==="
 }
