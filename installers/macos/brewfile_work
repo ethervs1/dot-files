@@ -191,7 +191,6 @@ cask "vlc"
 # AI code editor
 cask "void"
 mas "Monosnap", id: 540348655
-mas "Perplexity", id: 6714467650
 mas "Xcode", id: 497799835
 vscode "adpyke.vscode-sql-formatter"
 vscode "akashrajkn.language-netlogo-code"

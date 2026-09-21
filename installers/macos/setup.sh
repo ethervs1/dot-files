@@ -3,8 +3,12 @@ set -euo pipefail
 
 # =============================================================================
 # macOS Fresh Setup Script (Sonoma or later, Apple Silicon)
-# Usage: ./setup.sh [--all | --dirs | --xcode | --brew | --shell | --ssh | --mas | --vscode | --cleanup]
+# Usage: ./setup.sh [--profile <nombre>] [--all | --dirs | --xcode | --brew | --shell | --ssh | --mas | --vscode | --cleanup]
 #        Sin argumentos muestra el menu interactivo.
+#
+# --profile elige que brewfile_<nombre> usar (work, personal, ...).
+#   Si se omite, se pregunta de forma interactiva. Tambien sirve SETUP_PROFILE.
+#   Ejemplo: ./setup.sh --profile personal --brew
 #
 # Cadena de dependencias (orden recomendado para fresh install):
 #   1. dirs    → sin dependencias
@@ -30,6 +34,25 @@ info()  { echo -e "${GREEN}[+]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
 error() { echo -e "${RED}[-]${NC} $1"; }
 
+# =============================================================================
+# Preflight: la carpeta ~/dot-files tiene que existir
+# mod_dirs la copia a ~/v_git, asi que sin ella el setup no sirve de nada.
+# Se valida al arrancar (antes del menu y antes de procesar argumentos) para
+# fallar de inmediato en vez de a mitad de la instalacion.
+# =============================================================================
+DOTFILES_SRC="$HOME/dot-files"
+
+require_dotfiles() {
+  if [[ ! -d "$DOTFILES_SRC" ]]; then
+    error "Carpeta requerida no encontrada: $DOTFILES_SRC"
+    error "Copia o clona el repo dot-files en $DOTFILES_SRC y vuelve a correr este script."
+    exit 1
+  fi
+  info "Carpeta dot-files encontrada: $DOTFILES_SRC"
+}
+
+require_dotfiles
+
 # --- Evitar duplicar lineas en .zshrc ---
 append_once() {
   local line="$1"
@@ -38,22 +61,75 @@ append_once() {
 }
 
 # =============================================================================
+# Perfil de Brewfile (work / personal / ...)
+# Los modulos brew, mas y vscode leen todos el MISMO Brewfile, elegido aqui.
+# Se puede fijar de tres formas (en orden de precedencia):
+#   1. Flag:     ./setup.sh --profile personal --brew
+#   2. Env var:  SETUP_PROFILE=personal ./setup.sh --brew
+#   3. Prompt interactivo (si no se especifico ninguno)
+# Los perfiles disponibles se descubren solos: cada archivo brewfile_<nombre>
+# en este directorio es un perfil valido.
+# =============================================================================
+PROFILE="${SETUP_PROFILE:-}"
+BREWFILE=""
+
+# Lista los perfiles disponibles segun los archivos brewfile_* presentes
+list_profiles() {
+  local f
+  for f in "$SCRIPT_DIR"/brewfile_*; do
+    [[ -f "$f" ]] || continue
+    echo "${f##*/brewfile_}"
+  done
+}
+
+# Deja el Brewfile elegido en $BREWFILE. Solo pregunta una vez por ejecucion.
+resolve_brewfile() {
+  [[ -n "$BREWFILE" ]] && return 0
+
+  local available
+  available="$(list_profiles)"
+  if [[ -z "$available" ]]; then
+    error "No se encontro ningun archivo brewfile_* en: $SCRIPT_DIR"
+    return 1
+  fi
+
+  if [[ -z "$PROFILE" ]]; then
+    echo ""
+    info "Perfiles de Brewfile disponibles:"
+    echo "$available" | sed 's/^/    - /'
+    echo -n "Selecciona perfil: "
+    read -r PROFILE
+  fi
+
+  local candidate="$SCRIPT_DIR/brewfile_$PROFILE"
+  if [[ ! -f "$candidate" ]]; then
+    error "Perfil invalido: '$PROFILE' (no existe $candidate)"
+    error "Perfiles disponibles: $(echo "$available" | tr '\n' ' ')"
+    PROFILE=""   # permitir reintentar si se sigue en el menu
+    return 1
+  fi
+
+  BREWFILE="$candidate"
+  info "Perfil de Brewfile: $PROFILE  ->  $BREWFILE"
+}
+
+# =============================================================================
 # Modulo: Directorios y Symlinks
 # =============================================================================
 mod_dirs() {
   info "=== Modulo: Directorios y Symlinks ==="
 
-  mkdir -p ~/vault/v_git ~/vault/v_temp ~/vault/v_desktop ~/vault/v_documents ~/vault/v_download
+  mkdir -p ~/vault/v_git ~/vault/v_temp ~/vault/v_desktop ~/vault/v_documents ~/vault/v_downloads
 
-  ln -sfn ~/vault/desktop ~/Desktop/v_desktop
-  ln -sfn ~/vault/git ~/v_documents
-  ln -sfn ~/vault/git ~/v_git
-  ln -sfn ~/vault/temp ~/v_download
-  ln -sfn ~/vault/temp ~/v_temp
+  ln -sfn ~/vault/v_desktop ~/Desktop/v_desktop
+  ln -sfn ~/vault/v_git ~/v_documents
+  ln -sfn ~/vault/v_git ~/v_git
+  ln -sfn ~/vault/v_downloads ~/v_downloads
+  ln -sfn ~/vault/v_temp ~/v_temp
 
-  cp -r ./dot-files ~/git
-  ls -la  ~/git
-  ls -la  ~/temp
+  cp -r "$DOTFILES_SRC" ~/v_git
+  ls -la  ~/v_git
+  ls -la  ~/v_temp
 
   info "=== Modulo Directorios completado ==="
 }
@@ -91,12 +167,8 @@ mod_brew() {
     info "Homebrew ya instalado."
   fi
 
-  local brewfile="$SCRIPT_DIR/Brewfile"
-
-  if [[ ! -f "$brewfile" ]]; then
-    error "Brewfile no encontrado en: $brewfile"
-    return 1
-  fi
+  resolve_brewfile || return 1
+  local brewfile="$BREWFILE"
 
   info "Instalando paquetes desde Brewfile..."
   info "Nota: brew bundle instala taps, formulae, casks, mas apps y vscode extensions"
@@ -109,16 +181,27 @@ mod_brew() {
   # - vscode extensions - requiere 'code' en PATH
   # - npm packages
   # - uv packages
-  if ! brew bundle --file="$brewfile" --no-lock; then
+  if ! brew bundle --file="$brewfile"; then
     warn "brew bundle reporto algunos errores. Revisa el output arriba."
     warn "Nota: es normal que fallen algunas apps de mas si no estas logueado en App Store"
     warn "Nota: es normal que fallen vscode extensions si 'code' no esta en PATH"
   fi
 
+  info "=== Modulo Homebrew + Apps completado ==="
+}
+
+mod_work_profile() {
+  info "=== Modulo: Work ==="
   # Estos paquetes no fueron instalados por homebrew, pero ahora si
   brew install --cask microsoft-teams
 
-  info "=== Modulo Homebrew + Apps completado ==="
+  info "Ms Teams instalado"
+  
+  # Correr todo esto como sudo
+  sudo curl -Lo /usr/local/bin/devx "https://devx-cli.global.twdcgrid.net/download/macos-arm64/devx"
+  sudo chmod +x /usr/local/bin/devx
+
+  info "devx cli instalado."
 }
 
 # =============================================================================
@@ -158,7 +241,7 @@ mod_shell() {
 
   # Custom init
   info "Agregando custom init a .zshrc..."
-  append_once 'source ~/vault/git/dot-files/init.zsh'
+  append_once 'source ~/vault/v_git/dot-files/dot-files/init.zsh'
 
   info "=== Modulo Shell completado ==="
 }
@@ -190,6 +273,7 @@ vault = "Development"
 EOF
 
   info "=== Modulo SSH completado ==="
+  info "=== Debes activar el agente SSH en 1Password antes de usar git y ssh ==="
 }
 
 # =============================================================================
@@ -205,12 +289,8 @@ mod_mas() {
     return 1
   fi
 
-  local brewfile="$SCRIPT_DIR/Brewfile"
-
-  if [[ ! -f "$brewfile" ]]; then
-    error "Brewfile no encontrado en: $brewfile"
-    return 1
-  fi
+  resolve_brewfile || return 1
+  local brewfile="$BREWFILE"
 
   info "Extrayendo apps de Mac App Store desde Brewfile..."
 
@@ -269,12 +349,8 @@ mod_vscode() {
     return 1
   fi
 
-  local brewfile="$SCRIPT_DIR/Brewfile"
-
-  if [[ ! -f "$brewfile" ]]; then
-    error "Brewfile no encontrado en: $brewfile"
-    return 1
-  fi
+  resolve_brewfile || return 1
+  local brewfile="$BREWFILE"
 
   info "Extrayendo extensiones de VS Code desde Brewfile..."
 
@@ -350,11 +426,13 @@ show_menu() {
   echo "  5) SSH (1Password agent)"
   echo "  6) Mac App Store            (requiere: 3, login en App Store, lee Brewfile)"
   echo "  7) VS Code Extensions       (requiere: 3, 'code' en PATH, lee Brewfile)"
-  echo "  8) Cleanup                  (requiere: 3)"
+  echo "  8) Work Profile             (Instala todo lo otro antes de seguir con esto)"  
+  echo "  9) Cleanup                  (requiere: 3)"
   echo "  0) Salir"
   echo "========================================="
-  echo -e "${YELLOW}Orden recomendado fresh install: 1 2 3 4 5 (6 y 7 opcionales)${NC}"
   echo -e "${YELLOW}Nota: mod_brew (3) instala casi todo via Brewfile, incluyendo mas/vscode${NC}"
+  echo -e "${YELLOW}Nota: los modulos 3, 6 y 7 preguntan el perfil de Brewfile ($(list_profiles | tr '\n' ' ')) la primera vez${NC}"
+  echo -e "Nota: El iterm colors se baja asi wget -O "iterm_profiles.zip" https://github.com/mbadolato/iTerm2-Color-Schemes/zipball/master (de preferencia en ~/v_git) se hace unzip, y se usa la carpeta schemes en Iterm2"
   echo -n "Selecciona modulos (separados por espacio): "
   read -r choices
 
@@ -367,7 +445,8 @@ show_menu() {
       5) mod_1password_ssh ;;
       6) mod_mas ;;
       7) mod_vscode ;;
-      8) mod_cleanup ;;
+      8) mod_work_profile ;;
+      9) mod_cleanup ;;
       0) exit 0 ;;
       *) error "Opcion invalida: $choice" ;;
     esac
@@ -392,6 +471,16 @@ else
         mod_mas
         mod_vscode
         mod_cleanup
+        ;;
+      --profile)
+        if [[ -z "${2:-}" ]]; then
+          error "--profile requiere un nombre (ej: --profile personal)"
+          error "Perfiles disponibles: $(list_profiles | tr '\n' ' ')"
+          exit 1
+        fi
+        PROFILE="$2"
+        BREWFILE=""   # forzar re-resolucion con el perfil nuevo
+        shift
         ;;
       --dirs)     mod_dirs ;;
       --xcode)    mod_xcode ;;

@@ -1,18 +1,5 @@
 
-h() {
-      cat << 'EOF'
-====================================
-      MISC. ALIAS
-====================================
-
-    ghelp
-    khelp
-    mhelp
-    phelp
-    shelp
-
-EOF
-}
+# NOTE: the `h` index lives in help.zsh -- do not redefine it here.
 
 mhelp() {
   cat << 'EOF'
