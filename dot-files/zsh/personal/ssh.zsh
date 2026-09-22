@@ -6,7 +6,7 @@
 alias hx_wb_prod="ssh root@186.64.113.185 -p3367"
 alias hx_db_prod="ssh root@186.64.113.107 -p17301"
 alias skali="ssh ethervs@192.168.1.107"
-
+alias cloud_s="ssh -p 2640 e@192.168.1.63"
 alias ethdemo="ssh demo@186.64.113.247 -p26286;"
 
 alias sconfig="void ~/.ssh/config"
