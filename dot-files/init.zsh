@@ -7,10 +7,6 @@ for file in ~/vault/v_git/dot-files/dot-files/zsh/common/*.zsh; do
   source "$file"
 done
 
-for file in ~/vault/v_git/dot-files/dot-files/zsh/work/*.zsh; do
-  source "$file"
-done
-
 for file in ~/vault/v_git/dot-files/dot-files/zsh/personal/*.zsh; do
   source "$file"
 done
@@ -20,6 +16,13 @@ for file in ~/vault/v_git/dot-files/dot-files/scripts/common/*.sh; do
   source "$file"
 done
 
-for file in ~/vault/v_git/dot-files/dot-files/scripts/work/*.sh; do
-  source "$file"
-done
+# Archivos específicos de trabajo (solo para el usuario raul.munoz)
+if [[ "$USER" == "raul.munoz" ]]; then
+  for file in ~/vault/v_git/dot-files/dot-files/zsh/work/*.zsh; do
+    source "$file"
+  done
+
+  for file in ~/vault/v_git/dot-files/dot-files/scripts/work/*.sh; do
+    source "$file"
+  done
+fi
