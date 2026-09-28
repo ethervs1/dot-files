@@ -1,4 +1,6 @@
 #!/bin/bash
+# Revisar los perfiles en chrome, chrome://version/ se abre eso en cada instancia de chrome dnd haya un perfil.
+# Se busca la info que esta en Profile Path
 
 init_work() {
     echo "🚀 Iniciando entorno de trabajo..."
